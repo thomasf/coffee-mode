@@ -88,11 +88,6 @@
   :type 'boolean
   :group 'coffee)
 
-(defcustom coffee-tab-width tab-width
-  "The tab width to use when indenting."
-  :type 'integer
-  :group 'coffee)
-
 (defcustom coffee-command "coffee"
   "The CoffeeScript command used for evaluating code. Must be in your
 path."
@@ -434,32 +429,17 @@ For detail, see `comment-dwim'."
   "Indent current line as CoffeeScript."
   (interactive)
 
-  (if (= (point) (point-at-bol))
-      (insert-tab)
-    (save-excursion
-      (let ((prev-indent 0) (cur-indent 0))
-        ;; Figure out the indentation of the previous line
-        (setd prev-indent (coffee-previous-indent))
-
-        ;; Figure out the current line's indentation
-        (setd cur-indent (current-indentation))
-
-        ;; Shift one column to the left
-        (beginning-of-line)
-        (insert-tab)
-
-        (coffee-debug "point: %s" (point))
-        (coffee-debug "point-at-bol: %s" (point-at-bol))
-
-        (when (= (point-at-bol) (point))
-          (forward-char coffee-tab-width))
-
-        (coffee-debug "New indent: %s" (current-indentation))
-
-        ;; We're too far, remove all indentation.
-        (when (> (- (current-indentation) prev-indent) coffee-tab-width)
-          (backward-to-indentation 0)
-          (delete-region (point-at-bol) (point)))))))
+  (let ((cur-point (point))
+        (rel-cur-point 0))
+    (backward-to-indentation 0)
+    (setd rel-cur-point (- cur-point (point)))
+    (when (> (- (insert-tab)
+                (coffee-previous-indent))
+             tab-width)
+      (delete-region (point-at-bol) (point)))
+    (if (> rel-cur-point 0)
+        (forward-char rel-cur-point)
+      (backward-to-indentation 0))))
 
 (defun coffee-previous-indent ()
   "Return the indentation level of the previous non-blank line."
@@ -487,7 +467,7 @@ For detail, see `comment-dwim'."
   (let ((prev-indent (current-indentation)) (indent-next nil))
     (delete-horizontal-space t)
     (newline)
-    (insert-tab (/ prev-indent coffee-tab-width))
+    (insert-tab (/ prev-indent tab-width))
 
     ;; We need to insert an additional tab because the last line was special.
     (when (coffee-line-wants-indent)
