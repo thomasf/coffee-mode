@@ -291,7 +291,7 @@ path."
     (,coffee-regexp-regexp . font-lock-constant-face)
     (,coffee-boolean-regexp . font-lock-constant-face)
     (,coffee-keywords-regexp . font-lock-keyword-face)
-    (,coffee-lambda-regexp . font-lock-keyword-face)))
+    (,coffee-lambda-regexp . font-lock-function-name-face)))
 
 ;;
 ;; Helper Functions
