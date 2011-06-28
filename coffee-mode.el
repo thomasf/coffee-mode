@@ -234,7 +234,7 @@ path."
 (defvar coffee-prototype-regexp "\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\)::\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\):")
 
 ;; Assignment
-(defvar coffee-assign-regexp "\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\):")
+(defvar coffee-assign-regexp "\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\)[:=]")
 
 ;; Lambda
 (defvar coffee-lambda-regexp "\\((.+)\\)?\\s *\\(->\\|=>\\)")
@@ -286,10 +286,10 @@ path."
   `((,coffee-string-regexp . font-lock-string-face)
     (,coffee-this-regexp . font-lock-variable-name-face)
     (,coffee-prototype-regexp . font-lock-variable-name-face)
-    (,coffee-assign-regexp . font-lock-type-face)
+    (,coffee-constant-regexp . font-lock-constant-face)
+    (,coffee-assign-regexp . font-lock-variable-name-face)
     (,coffee-regexp-regexp . font-lock-constant-face)
     (,coffee-boolean-regexp . font-lock-constant-face)
-    (,coffee-constant-regexp . font-lock-constant-face)
     (,coffee-keywords-regexp . font-lock-keyword-face)
     (,coffee-lambda-regexp . font-lock-keyword-face)))
 
