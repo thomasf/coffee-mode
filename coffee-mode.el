@@ -245,6 +245,9 @@ path."
 ;; Booleans
 (defvar coffee-boolean-regexp "\\b\\(true\\|false\\|yes\\|no\\|on\\|off\\|null\\)\\b")
 
+;; Constant (just a convention)
+(defvar coffee-constant-regexp "\\b\\([[:upper:]_]+\\)\\b")
+
 ;; Regular Expressions
 (defvar coffee-regexp-regexp "\\/\\(\\\\.\\|\\[\\(\\\\.\\|.\\)+?\\]\\|[^/]\\)+?\\/")
 
@@ -286,7 +289,9 @@ path."
     (,coffee-assign-regexp . font-lock-type-face)
     (,coffee-regexp-regexp . font-lock-constant-face)
     (,coffee-boolean-regexp . font-lock-constant-face)
-    (,coffee-keywords-regexp . font-lock-keyword-face)))
+    (,coffee-constant-regexp . font-lock-constant-face)
+    (,coffee-keywords-regexp . font-lock-keyword-face)
+    (,coffee-lambda-regexp . font-lock-keyword-face)))
 
 ;;
 ;; Helper Functions
