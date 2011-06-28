@@ -248,6 +248,9 @@ path."
 ;; Constant (just a convention)
 (defvar coffee-constant-regexp "\\b\\([[:upper:]_]+\\)\\b")
 
+;; Constructor
+(defvar coffee-constructor-regexp "\\b\\<[[:upper:]]\\w*\\b")
+
 ;; Regular Expressions
 (defvar coffee-regexp-regexp "\\/\\(\\\\.\\|\\[\\(\\\\.\\|.\\)+?\\]\\|[^/]\\)+?\\/")
 
@@ -291,6 +294,7 @@ path."
     (,coffee-regexp-regexp . font-lock-constant-face)
     (,coffee-boolean-regexp . font-lock-constant-face)
     (,coffee-keywords-regexp . font-lock-keyword-face)
+    (,coffee-constructor-regexp . font-lock-type-face)
     (,coffee-lambda-regexp . font-lock-function-name-face)))
 
 ;;
