@@ -554,7 +554,7 @@ line? Returns `t' or `nil'. See the README for more details."
   (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
   (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
-  (define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
+  (define-key coffee-mode-map "\C-j" 'coffee-newline-and-indent)
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
