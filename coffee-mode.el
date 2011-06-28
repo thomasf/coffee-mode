@@ -149,7 +149,8 @@ path."
      (apply 'make-comint "CoffeeREPL"
             coffee-command nil coffee-args-repl)))
 
-  (pop-to-buffer "*CoffeeREPL*"))
+  (pop-to-buffer "*CoffeeREPL*")
+  (ansi-color-for-comint-mode-on))
 
 (defun coffee-compile-file ()
   "Compiles and saves the current file to disk. Doesn't open in a buffer.."
