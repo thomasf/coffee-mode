@@ -485,13 +485,15 @@ For detail, see `comment-dwim'."
 ;; line starts with `class', for instance, you're probably going to
 ;; want to indent the next line.
 
-(defvar coffee-indenters-bol '("class" "for" "if" "try")
+(defvar coffee-indenters-bol
+  '("class" "for" "if" "unless" "else" "while" "until" "loop" "switch"
+    "when" "try" "catch" "finally")
   "Keywords or syntax whose presence at the start of a line means the
 next line should probably be indented.")
 
 (defun coffee-indenters-bol-regexp ()
   "Builds a regexp out of `coffee-indenters-bol' words."
-  (concat "^" (regexp-opt coffee-indenters-bol 'words)))
+  (concat "^\\s-*" (regexp-opt coffee-indenters-bol 'words)))
 
 (defvar coffee-indenters-eol '(?> ?{ ?\[)
   "Single characters at the end of a line that mean the next line
@@ -500,13 +502,10 @@ should probably be indented.")
 (defun coffee-line-wants-indent ()
   "Does the current line want to be indented deeper than the previous
 line? Returns `t' or `nil'. See the README for more details."
-  (interactive)
 
   (save-excursion
     (let ((indenter-at-bol) (indenter-at-eol))
-      ;; Go back a line and to the first character.
       (forward-line -1)
-      (backward-to-indentation 0)
 
       ;; If the next few characters match one of our magic indenter
       ;; keywords, we want to indent the line we were on originally.
