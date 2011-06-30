@@ -99,8 +99,13 @@ path."
   :type 'list
   :group 'coffee)
 
-(defcustom coffee-args-compile '("-c")
+(defcustom coffee-args-compile-file '("-c")
   "The command line arguments to pass to `coffee-command' when compiling a file."
+  :type 'list
+  :group 'coffee)
+
+(defcustom coffee-args-compile-region '("-spb")
+  "The command line arguments to pass to `coffee-command' when compiling a region."
   :type 'list
   :group 'coffee)
 
@@ -179,10 +184,11 @@ path."
     (when buffer
       (kill-buffer buffer)))
 
-  (call-process-region start end coffee-command nil
-                       (get-buffer-create coffee-compiled-buffer-name)
-                       nil
-                       "-s" "-p" "--bare")
+  (apply 'call-process-region
+         start end coffee-command nil
+         (get-buffer-create coffee-compiled-buffer-name)
+         nil
+         coffee-args-compile-region)
   (switch-to-buffer (get-buffer coffee-compiled-buffer-name))
   (funcall coffee-js-mode)
   (goto-char (point-min)))
@@ -322,7 +328,7 @@ For detail, see `comment-dwim'."
 
 (defun coffee-command-compile (file-name)
   "The `coffee-command' with args to compile a file."
-  (mapconcat 'identity (append (list coffee-command) coffee-args-compile (list file-name)) " "))
+  (mapconcat 'identity (append (list coffee-command) coffee-args-compile-file (list file-name)) " "))
 
 ;;
 ;; imenu support
@@ -584,9 +590,8 @@ back-dent the line by `coffee-indent-offset' spaces.  On reaching column
   "Major mode for editing CoffeeScript..."
 
   ;; key bindings
-  (define-key coffee-mode-map (kbd "A-r") 'coffee-compile-buffer)
-  (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
-  (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
+  (define-key coffee-mode-map "\C-cb" 'coffee-compile-buffer)
+  (define-key coffee-mode-map "\C-cr" 'coffee-compile-region)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
 
   ;; code for syntax highlighting
