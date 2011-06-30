@@ -109,6 +109,11 @@ path."
   :type 'string
   :group 'coffee)
 
+(defcustom coffee-indent-offset 2
+  "Amount of offset per level of indentation."
+  :type 'integer
+  :group 'coffee)
+
 (defvar coffee-mode-hook nil
   "A hook for you to run your own code when the mode is loaded.")
 
@@ -282,7 +287,7 @@ path."
 
 ;; Create the list for font-lock. Each class of keyword is given a
 ;; particular face.
-(defvar coffee-font-lock-keywords
+(defvar coffee-font-lock-keywords ;; TODO: string interpolation, see ruby-mode
   ;; *Note*: order below matters. `coffee-keywords-regexp' goes last
   ;; because otherwise the keyword "state" in the function
   ;; "state_entry" would be highlighted.
@@ -430,64 +435,26 @@ For detail, see `comment-dwim'."
     index-alist))
 
 ;;
-;; Indentation
+;; Navigation
 ;;
 
-;;; The theory is explained in the README.
+;; same as in haml-mode
+(defun coffee-forward-through-whitespace (&optional backward)
+  "Move the point forward through any whitespace.
+The point will move forward at least one line, until it reaches
+either the end of the buffer or a line with no whitespace.
 
-(defun coffee-indent-line ()
-  "Indent current line as CoffeeScript."
-  (interactive)
+If BACKWARD is non-nil, move the point backward instead."
 
-  (let ((cur-point (point))
-        (rel-cur-point 0))
-    (backward-to-indentation 0)
-    (setd rel-cur-point (- cur-point (point)))
-    (when (> (- (insert-tab)
-                (coffee-previous-indent))
-             tab-width)
-      (delete-region (point-at-bol) (point)))
-    (if (> rel-cur-point 0)
-        (forward-char rel-cur-point)
-      (backward-to-indentation 0))))
+  (let ((arg (if backward -1 1))
+        (endp (if backward 'bobp 'eobp)))
+    (loop do (forward-line arg)
+          while (and (not (funcall endp))
+                     (looking-at "^[ \t]*$")))))
 
-(defun coffee-previous-indent ()
-  "Return the indentation level of the previous non-blank line."
-
-  (save-excursion
-    (forward-line -1)
-    (if (bobp)
-        0
-      (progn
-        (while (and (coffee-line-empty-p) (not (bobp))) (forward-line -1))
-        (current-indentation)))))
-
-(defun coffee-line-empty-p ()
-  "Is this line empty? Returns non-nil if so, nil if not."
-  (or (bobp)
-   (string-match "^\\s *$" (coffee-line-as-string))))
-
-(defun coffee-newline-and-indent ()
-  "Inserts a newline and indents it to the same level as the previous line."
-  (interactive)
-
-  ;; Remember the current line indentation level,
-  ;; insert a newline, and indent the newline to the same
-  ;; level as the previous line.
-  (let ((prev-indent (current-indentation)) (indent-next nil))
-    (delete-horizontal-space t)
-    (newline)
-    (insert-tab (/ prev-indent tab-width))
-
-    ;; We need to insert an additional tab because the last line was special.
-    (when (coffee-line-wants-indent)
-      (insert-tab)))
-
-  ;; Last line was a comment so this one should probably be,
-  ;; too. Makes it easy to write multi-line comments (like the one I'm
-  ;; writing right now).
-  (when (coffee-previous-line-is-comment)
-    (insert "# ")))
+;;
+;; Indentation
+;;
 
 ;; Indenters help determine whether the current line should be
 ;; indented further based on the content of the previous line. If a
@@ -508,34 +475,6 @@ next line should probably be indented.")
   "Single characters at the end of a line that mean the next line
 should probably be indented.")
 
-(defun coffee-line-wants-indent ()
-  "Does the current line want to be indented deeper than the previous
-line? Returns `t' or `nil'. See the README for more details."
-
-  (save-excursion
-    (let ((indenter-at-bol) (indenter-at-eol))
-      (forward-line -1)
-
-      ;; If the next few characters match one of our magic indenter
-      ;; keywords, we want to indent the line we were on originally.
-      (when (looking-at (coffee-indenters-bol-regexp))
-        (setd indenter-at-bol t))
-
-      ;; If that didn't match, go to the back of the line and check to
-      ;; see if the last character matches one of our indenter
-      ;; characters.
-      (when (not indenter-at-bol)
-        (end-of-line)
-
-        ;; Optimized for speed - checks only the last character.
-        (when (some (lambda (char)
-                        (= (char-before) char))
-                      coffee-indenters-eol)
-          (setd indenter-at-eol t)))
-
-      ;; If we found an indenter, return `t'.
-      (or indenter-at-bol indenter-at-eol))))
-
 (defun coffee-previous-line-is-comment ()
   "Returns `t' if the previous line is a CoffeeScript comment."
   (save-excursion
@@ -548,11 +487,98 @@ line? Returns `t' or `nil'. See the README for more details."
     (backward-to-indentation 0)
     (= (char-after) (string-to-char "#"))))
 
+(defun coffee-indent-p ()
+  "Returns t if the current line can have lines nested beneath it."
+
+  (save-excursion
+    (let ((indenter-at-bol) (indenter-at-eol))
+      (when (looking-at (coffee-indenters-bol-regexp))
+        (setd indenter-at-bol t))
+      (when (not indenter-at-bol)
+        (end-of-line)
+        (when (some (lambda (char)
+                        (= (char-before) char))
+                      coffee-indenters-eol)
+          (setd indenter-at-eol t)))
+      (or indenter-at-bol indenter-at-eol))))
+
+;; based on haml-mode
+(defun coffee-compute-indentation ()
+  "Calculate the maximum sensible indentation for the current line."
+
+  (save-excursion
+    (beginning-of-line)
+    (if (bobp) (list 0 nil)
+      (coffee-forward-through-whitespace t)
+      (let ((indent (coffee-indent-p)))
+        (cond
+         ((consp indent) indent)
+         ((integerp indent) (list indent t))
+         (indent (list (+ (current-indentation) coffee-indent-offset) nil))
+         (t (list (current-indentation) nil)))))))
+
+;; based on haml-mode
+(defun coffee-indent-region (start end)
+  "Indent each nonblank line in the region.
+This is done by indenting the first line based on
+`coffee-compute-indentation' and preserving the relative
+indentation of the rest of the region.  START and END specify the
+region to indent.
+
+If this command is used multiple times in a row, it will cycle
+between possible indentations."
+
+  (save-excursion
+    (goto-char end)
+    (setq end (point-marker))
+    (goto-char start)
+    (let (this-line-column current-column
+          (next-line-column
+           (if (and (equal last-command this-command) (/= (current-indentation) 0))
+               (* (/ (- (current-indentation) 1) coffee-indent-offset) coffee-indent-offset)
+             (car (coffee-compute-indentation)))))
+      (while (< (point) end)
+        (setq this-line-column next-line-column
+              current-column (current-indentation))
+        ;; Delete whitespace chars at beginning of line
+        (delete-horizontal-space)
+        (unless (eolp)
+          (setq next-line-column (save-excursion
+                                   (loop do (forward-line 1)
+                                         while (and (not (eobp)) (looking-at "^[ \t]*$")))
+                                   (+ this-line-column
+                                      (- (current-indentation) current-column))))
+          ;; Don't indent an empty line
+          (unless (eolp) (indent-to this-line-column)))
+        (forward-line 1)))
+    (move-marker end nil))
+  (error "")) ;; Terrible hack
+
+;; based on haml-mode
+(defun coffee-indent-line ()
+  "Indent the current line.
+The first time this command is used, the line will be indented to the
+maximum sensible indentation.  Each immediately subsequent usage will
+back-dent the line by `coffee-indent-offset' spaces.  On reaching column
+0, it will cycle back to the maximum sensible indentation."
+  (interactive "*")
+
+  (let ((ci (current-indentation))
+        (cc (current-column)))
+    (destructuring-bind (need strict) (coffee-compute-indentation)
+      (save-excursion
+        (beginning-of-line)
+        (delete-horizontal-space)
+        (if (and (not strict) (equal last-command this-command) (/= ci 0))
+            (indent-to (* (/ (- ci 1) coffee-indent-offset) coffee-indent-offset))
+          (indent-to need))))
+    (when (< (current-column) (current-indentation))
+      (forward-to-indentation 0))))
+
 ;;
 ;; Define Major Mode
 ;;
 
-;;;###autoload
 (define-derived-mode coffee-mode fundamental-mode
   "coffee-mode"
   "Major mode for editing CoffeeScript..."
@@ -562,7 +588,6 @@ line? Returns `t' or `nil'. See the README for more details."
   (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
   (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
-  (define-key coffee-mode-map "\C-j" 'coffee-newline-and-indent)
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
@@ -577,8 +602,9 @@ line? Returns `t' or `nil'. See the README for more details."
   (modify-syntax-entry ?' "\"" coffee-mode-syntax-table)
 
   ;; indentation
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'coffee-indent-line)
+  (set (make-local-variable 'indent-line-function) 'coffee-indent-line)
+  (set (make-local-variable 'indent-region-function) 'coffee-indent-region)
+  (setq indent-tabs-mode nil)
 
   ;; imenu
   (make-local-variable 'imenu-create-index-function)
