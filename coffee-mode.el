@@ -558,7 +558,7 @@ between possible indentations."
           (unless (eolp) (indent-to this-line-column)))
         (forward-line 1)))
     (move-marker end nil))
-  (error "")) ;; Terrible hack
+  (setq deactivate-mark nil))
 
 ;; based on haml-mode
 (defun coffee-indent-line ()
