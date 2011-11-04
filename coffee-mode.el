@@ -720,6 +720,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
   (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
+  (define-key coffee-mode-map [remap newline-and-indent] 'coffee-newline-and-indent)
   (define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
   (define-key coffee-mode-map "\C-c\C-o\C-s" 'coffee-cos-mode)
 
