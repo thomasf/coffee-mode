@@ -35,15 +35,14 @@ And, this applies to lines ending in `(` additionally.
 ![Screenshot](https://github.com/downloads/torimaru/coffee-mode/heardoc.png)
 
 
-Powered by python-mode's highlight heardocs solution, it highlight heardocs correctly.
+Powered by python-mode's highlight heardocs solution, we highlight heardocs correctly.
 
 
 #### Patterns
 ![Screenshot](https://github.com/downloads/torimaru/coffee-mode/highlight.png)
 
 
-Highlight lambda function, built-in function(escape, parseInt, Date...),
-Object's property(constructor, hasOwnProperty, toString...), and number literal.
+Highlight lambda function, built-in function, Object's property and number literal.
 
 ### Edit
 #### Delete and Backspace
