@@ -33,11 +33,15 @@ And, this applies to lines ending in `(` additionally.
 
 #### Hear Documents
 ![Screenshot](https://github.com/downloads/torimaru/coffee-mode/heardoc.png)
+
+
 Powered by python-mode's highlight heardocs solution, it highlight heardocs correctly.
 
 
 #### Patterns
 ![Screenshot](https://github.com/downloads/torimaru/coffee-mode/highlight.png)
+
+
 Highlight lambda function, built-in function(escape, parseInt, Date...),
 Object's property(constructor, hasOwnProperty, toString...), and number literal.
 
