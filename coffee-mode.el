@@ -9,7 +9,7 @@
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;; Version: 0.4.0
-;; Keywords: CoffeeScript major mode
+;; Keywords: CoffeeScript major mode (python-mode mixin edition)
 ;; Author: Yasuaki Mitani <dr.ikros@gmail.com>
 ;;         (coffee-mode) Chris Wanstrath <chris@ozmm.org> 
 ;;         (python-mode) 2003-2011 https://launchpad.net/python-mode
