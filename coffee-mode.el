@@ -1,17 +1,27 @@
 ;;; coffee-mode.el --- Major mode to edit CoffeeScript files in Emacs
 
+;; ~~~~~~~~~~ coffee-mode 0.4.0 ~~~~~~~~~~~~
 ;; Copyright (C) 2010 Chris Wanstrath
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+;; ~~~~~~~~~~ python-mode 6.0.3 ~~~~~~~~~~~~
+;; Copyright (C) 1992,1993,1994  Tim Peters
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;; Version: 0.4.0
 ;; Keywords: CoffeeScript major mode
-;; Author: Chris Wanstrath <chris@ozmm.org>
-;; URL: http://github.com/defunkt/coffee-mode
+;; Author: Yasuaki Mitani <dr.ikros@gmail.com>
+;;         (coffee-mode) Chris Wanstrath <chris@ozmm.org> 
+;;         (python-mode) 2003-2011 https://launchpad.net/python-mode
+;;         (python-mode) 1995-2002 Barry A. Warsaw 
+;;         (python-mode) 1992-1994 Tim Peters
+;; URL: http://github.com/defunkt/coffee-script
 
 ;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This program is distributed in the hope that it will be useful,
@@ -47,6 +57,9 @@
 
 ;; Also thanks to Jason Blevins's markdown-mode.el and Steve Yegge's
 ;; js2-mode for guidance.
+
+;; python-quate-syntax, py-electric-backspace, py-electric-delete 
+;; are powerd by "python-mode"
 
 ;; TODO:
 ;; - Execute {buffer,region,line} and show output in new buffer
@@ -354,20 +367,124 @@ If FILENAME is omitted, the current buffer's file name is used."
                                  coffee-js-keywords
                                  coffee-cs-keywords) 'words))
 
-
 ;; Create the list for font-lock. Each class of keyword is given a
 ;; particular face.
+;(defvar coffee-font-lock-keywords
+;  ;; *Note*: order below matters. `coffee-keywords-regexp' goes last
+;  ;; because otherwise the keyword "state" in the function
+;  ;; "state_entry" would be highlighted.
 (defvar coffee-font-lock-keywords
-  ;; *Note*: order below matters. `coffee-keywords-regexp' goes last
-  ;; because otherwise the keyword "state" in the function
-  ;; "state_entry" would be highlighted.
-  `((,coffee-string-regexp . font-lock-string-face)
-    (,coffee-this-regexp . font-lock-variable-name-face)
-    (,coffee-prototype-regexp . font-lock-variable-name-face)
-    (,coffee-assign-regexp . font-lock-type-face)
-    (,coffee-regexp-regexp . font-lock-constant-face)
-    (,coffee-boolean-regexp . font-lock-constant-face)
-    (,coffee-keywords-regexp . font-lock-keyword-face)))
+  (let ((keywords (mapconcat 'identity
+							 '("if" "else" "new" "return" "try" "catch"
+							   "finally" "throw" "break" "continue" "for" "in" "while"
+							   "delete" "instanceof" "typeof" "switch" "super" "extends"
+							   "class" "until" "loop" "then" "unless" "and" "or" "is"
+							   "isnt" "not" "of" "by" "where" "when"
+							   )
+							 "\\|"))
+		(builtin-func (mapconcat 'identity
+								 '("escape" "unescape" "encodeURI" "decodeURI" "encodeURIComponent" "decodeURIComponent"
+								   "eval" "parseInt" "parseFloat" "isNaN" "isFinite"
+								   "setTimeout" "clearTimeout" "setInterval" "clearInterval")
+								 "\\|"))
+		(builtin-obj (mapconcat 'identity
+								'("Number" "String" "Boolean" "Object" "Array" "Function" "RegExp" "Date" "Math" 
+								  "window" "global" "export")
+								"\\|"))
+		(builtin-prop (mapconcat 'identity
+								 '("prototype" "constructor" "toString" "valueOf" "toLocaleString" 
+								   "hasOwnProperty" "propertyIsEnumerable" "isPropertyOf" "__proto__")
+								 "\\|"))
+		
+		)
+    (list
+	 ; keywords
+     (cons (concat "\\<\\(" keywords "\\)\\>[ \n\t(]") 1)
+	 ; "this"
+     '("\\(@\\(\\w\\|_\\)*\\|this\\)" 1 font-lock-variable-name-face)
+	 ; prototype
+     '("\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\)::\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\)" 1 font-lock-variable-name-face)
+	 ; object attr
+     '("\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\):" 1 font-lock-type-face)
+	 ; constant
+     '("\\b\\(true\\|false\\|yes\\|no\\|on\\|off\\|null\\|undefined\\)\\b" 1  font-lock-constant-face)
+	 ; lambda function
+     '("\\(\\(([^()]*)\\)?\\s *\\(->\\|=>\\)\\)" 1  font-lock-function-name-face)
+	 ; number
+     '("\\([0-9]+\\(\\.[0-9]+\\(\\(+|-\\)?\\(e|E\\)[0-9]+\\)?\\)?\\)" 1 font-lock-builtin-face)
+	 ; builtin-func
+     (list(concat "\\<\\(" builtin-func "\\)\\>[ \n\t(]") 1 'font-lock-builtin-face)
+	 ; builtin-obj
+     (list(concat "\\<\\(" builtin-obj "\\)\\>[ \n\t(.]") 1 'font-lock-builtin-face)
+	 ; builtin-prop
+	 (list(concat "\\<\\(" builtin-prop "\\)\\>[ \n\t(.]") 1 'font-lock-builtin-face)
+     )
+    )
+  )
+
+(unless (functionp 'string-to-syntax)
+    (defun string-to-syntax (s)
+      (cond
+       ((equal s "|") '(15))
+       ((equal s "_") '(3))
+       (t (error "Unhandled string: %s" s))))
+	)
+
+(defconst coffee-font-lock-syntactic-keywords
+  '(("[^\\]\\\\\\(?:\\\\\\\\\\)*\\(\\s\"\\)\\1\\(\\1\\)"
+     (2
+      (7)))
+    ("\\(\\)\\(\\s\"\\)\\2\\(\\2\\)"
+     (1
+      (python-quote-syntax 1))
+     (2
+      (python-quote-syntax 2))
+     (3
+      (python-quote-syntax 3)))))
+
+(defun python-quote-syntax (n)
+  "Put `syntax-table' property correctly on triple quote.
+Used for syntactic keywords.  N is the match number (1, 2 or 3)."
+  ;; Given a triple quote, we have to check the context to know
+  ;; whether this is an opening or closing triple or whether it's
+  ;; quoted anyhow, and should be ignored.  (For that we need to do
+  ;; the same job as `syntax-ppss' to be correct and it seems to be OK
+  ;; to use it here despite initial worries.) We also have to sort
+  ;; out a possible prefix -- well, we don't _have_ to, but I think it
+  ;; should be treated as part of the string.
+  ;; Test cases:
+  ;;  ur"""ar""" x='"' # """
+  ;; x = ''' """ ' a
+  ;; '''
+  ;; x '"""' x """ \"""" x
+  (save-excursion
+    (goto-char (match-beginning 0))
+    (cond
+     ;; Consider property for the last char if in a fenced string.
+     ((= n 3)
+      (let* ((font-lock-syntactic-keywords nil)
+             (syntax (if (featurep 'xemacs)
+                         (parse-partial-sexp (point-min) (point))
+                       (syntax-ppss))))
+        (when (eq t (nth 3 syntax))     ; after unclosed fence
+          (goto-char (nth 8 syntax))    ; fence position
+          ;; Is it a matching sequence?
+          (if (eq (char-after) (char-after (match-beginning 2)))
+              (eval-when-compile (string-to-syntax "|"))))))
+     ;; Consider property for initial char, accounting for prefixes.
+     ((or (and (= n 2)                  ; leading quote (not prefix)
+               (= (match-beginning 1) (match-end 1))) ; prefix is null
+          (and (= n 1)                  ; prefix
+               (/= (match-beginning 1) (match-end 1)))) ; non-empty
+      (let ((font-lock-syntactic-keywords nil))
+        (unless (eq 'string (syntax-ppss-context (if (featurep 'xemacs)
+                                                     (parse-partial-sexp (point-min) (point))
+                                                   (syntax-ppss))))
+          ;; (eval-when-compile (string-to-syntax "|"))
+          (eval-when-compile (string-to-syntax "|")))))
+     ;; Otherwise (we're in a non-matching string) the property is
+     ;; nil, which is OK.
+     )))
 
 ;;
 ;; Helper Functions
@@ -588,7 +705,8 @@ For detail, see `comment-dwim'."
 
     ;; We need to insert an additional tab because the last line was special.
     (when (coffee-line-wants-indent)
-      (insert-tab)))
+      (insert-tab))
+	)
 
   ;; Last line was a comment so this one should probably be,
   ;; too. Makes it easy to write multi-line comments (like the one I'm
@@ -601,7 +719,7 @@ For detail, see `comment-dwim'."
 ;; line starts with `class', for instance, you're probably going to
 ;; want to indent the next line.
 
-(defvar coffee-indenters-bol '("class" "for" "if" "try")
+(defvar coffee-indenters-bol '("class" "for" "while" "if" "else" "try" "catch" "finally" "switch" "when")
   "Keywords or syntax whose presence at the start of a line means the
 next line should probably be indented.")
 
@@ -609,15 +727,63 @@ next line should probably be indented.")
   "Builds a regexp out of `coffee-indenters-bol' words."
   (regexp-opt coffee-indenters-bol 'words))
 
-(defvar coffee-indenters-eol '(?> ?{ ?\[)
+(defvar coffee-indenters-eol '(?> ?{ ?\[ ?()
   "Single characters at the end of a line that mean the next line
 should probably be indented.")
+
+(defvar coffee-back-indenters-bol '(?} ?\] ?))
+  "")
+
+;; Electric deletion
+(defun py-electric-backspace (&optional arg)
+  "Delete preceding character or level of indentation.
+With ARG do that ARG times. "
+  (interactive "*p")
+  (let ((arg (or arg 1)))
+    (dotimes (i arg)
+      (if (looking-back "^[ \t]+")
+          (let* ((remains (% (current-column) coffee-tab-width)))
+            (if (< 0 remains)
+                (delete-char (- remains))
+              (indent-line-to (- (current-indentation) coffee-tab-width))))
+        (delete-char (- 1))))))
+
+(defun py-electric-delete (&optional arg)
+  "Delete preceding or following character or levels of whitespace.
+
+With ARG do that ARG times. "
+  (interactive "*p")
+  (let ((arg (or arg 1)))
+    (dotimes (i arg)
+      (if (and (or (bolp)(looking-back "^[ \t]+")) (looking-at "[ \t]+"))
+          (let* ((remains (% (+ (current-column) (- (match-end 0)(match-beginning 0))) coffee-tab-width)))
+            (if (< 0 remains)
+                (delete-char remains)
+              (delete-char coffee-tab-width)))
+        (delete-char 1)))))
+
+
+(defun coffee-back-indent ()
+  (interactive)
+  (save-excursion
+    (save-match-data
+      (beginning-of-line)
+      ;; get rid of tabs at beginning of line
+      (when (looking-at "^\\s-+")
+        (untabify (match-beginning 0) (match-end 0)))
+      (when (looking-at (concat "^" (make-string coffee-tab-width ?\ )))
+        (replace-match "")))))
+
+(defun coffee-back-indent-region (start end)
+  (interactive "r")
+  (indent-rigidly start end (- coffee-tab-width))
+  )
 
 (defun coffee-line-wants-indent ()
   "Does the current line want to be indented deeper than the previous
 line? Returns `t' or `nil'. See the README for more details."
   (interactive)
-
+  
   (save-excursion
     (let ((indenter-at-bol) (indenter-at-eol))
       ;; Go back a line and to the first character.
@@ -644,6 +810,8 @@ line? Returns `t' or `nil'. See the README for more details."
       ;; If we found an indenter, return `t'.
       (or indenter-at-bol indenter-at-eol))))
 
+
+
 (defun coffee-previous-line-is-comment ()
   "Returns `t' if the previous line is a CoffeeScript comment."
   (save-excursion
@@ -655,6 +823,12 @@ line? Returns `t' or `nil'. See the README for more details."
   (save-excursion
     (backward-to-indentation 0)
     (= (char-after) (string-to-char "#"))))
+
+(defun set-coffee-tab-width (width)
+  (interactive)
+  (setq coffee-tab-width width)
+  (set (make-local-variable 'tab-width) width)
+  )
 
 ;;
 ;; Define Major Mode
@@ -669,13 +843,26 @@ line? Returns `t' or `nil'. See the README for more details."
   (define-key coffee-mode-map (kbd "A-r") 'coffee-compile-buffer)
   (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
   (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
+  (define-key coffee-mode-map (kbd "<S-tab>") 'coffee-back-indent)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
   (define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
   (define-key coffee-mode-map "\C-c\C-o\C-s" 'coffee-cos-mode)
+  (define-key coffee-mode-map [(delete)] 'py-electric-delete)
+  (define-key coffee-mode-map [(backspace)] 'py-electric-backspace)
+  (define-key coffee-mode-map [(control c)(<)] 'coffee-back-indent-region)
+  (define-key coffee-mode-map [(control c)(>)] 'indent-region)
 
   ;; code for syntax highlighting
-  (setq font-lock-defaults '((coffee-font-lock-keywords)))
-
+;  (setq font-lock-defaults '((coffee-font-lock-keywords)))
+  (set (make-local-variable 'font-lock-defaults) 
+	   '(coffee-font-lock-keywords nil nil nil nil 
+									(font-lock-syntactic-keywords
+									 . coffee-font-lock-syntactic-keywords)))
+;  (set (make-local-variable 'font-lock-defaults)
+;		 '(coffee-font-lock-keywords nil nil nil nil
+;								 (font-lock-syntactic-keywords
+;								  . coffee-font-lock-syntactic-keywords)))
+;  (setq font-lock-syntactic-keywords '((coffee-font-lock-syntactic-keywords)))
   ;; perl style comment: "# ..."
   (modify-syntax-entry ?# "< b" coffee-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" coffee-mode-syntax-table)
@@ -684,6 +871,7 @@ line? Returns `t' or `nil'. See the README for more details."
 
   ;; single quote strings
   (modify-syntax-entry ?' "\"" coffee-mode-syntax-table)
+  (modify-syntax-entry ?/ "\"" coffee-mode-syntax-table)
 
   ;; indentation
   (make-local-variable 'indent-line-function)
