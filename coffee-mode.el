@@ -9,7 +9,7 @@
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;; Version: 0.4.0
-;; Keywords: CoffeeScript major mode (python-mode mixin edition)
+;; Keywords: CoffeeScript major mode
 ;; Author: Yasuaki Mitani <dr.ikros@gmail.com>
 ;;         (coffee-mode) Chris Wanstrath <chris@ozmm.org> 
 ;;         (python-mode) 2003-2011 https://launchpad.net/python-mode
@@ -399,7 +399,7 @@ If FILENAME is omitted, the current buffer's file name is used."
 		)
     (list
 	 ; keywords
-     (cons (concat "\\<\\(" keywords "\\)\\>[ \n\t(]") 1)
+     (cons (concat "\\(^\\|[ \t\n]\\)\\(" keywords "\\)\\>") 2)
 	 ; "this"
      '("\\(@\\(\\w\\|_\\)*\\|this\\)" 1 font-lock-variable-name-face)
 	 ; prototype
@@ -411,7 +411,7 @@ If FILENAME is omitted, the current buffer's file name is used."
 	 ; lambda function
      '("\\(\\(([^()]*)\\)?\\s *\\(->\\|=>\\)\\)" 1  font-lock-function-name-face)
 	 ; number
-     '("\\([0-9]+\\(\\.[0-9]+\\(\\(+|-\\)?\\(e|E\\)[0-9]+\\)?\\)?\\)" 1 font-lock-builtin-face)
+     '("\\<\\(\\(0x\\)?[0-9]+\\(\\.[0-9]+\\(\\(+|-\\)?\\(e\\|E\\)[0-9]+\\)?\\)?\\)\\>" 1 font-lock-builtin-face)
 	 ; builtin-func
      (list(concat "\\<\\(" builtin-func "\\)\\>[ \n\t(]") 1 'font-lock-builtin-face)
 	 ; builtin-obj
