@@ -395,11 +395,12 @@ If FILENAME is omitted, the current buffer's file name is used."
 								 '("prototype" "constructor" "toString" "valueOf" "toLocaleString" 
 								   "hasOwnProperty" "propertyIsEnumerable" "isPropertyOf" "__proto__")
 								 "\\|"))
-		
+		(head-delimiters "][ \n\t():;{}<>?%!&|='\",+*/---")
+		(prop-delimiters "][ \n\t():;{}<>?%!&|='\".,+*/---")
 		)
     (list
 	 ; keywords
-     (cons (concat "\\(^\\|[ \t\n]\\)\\(" keywords "\\)\\>") 2)
+     (cons (concat "\\(^\\|[" head-delimiters "]\\)\\(" keywords "\\)\\>") 2)
 	 ; "this"
      '("\\(@\\(\\w\\|_\\)*\\|this\\)" 1 font-lock-variable-name-face)
 	 ; prototype
@@ -407,17 +408,17 @@ If FILENAME is omitted, the current buffer's file name is used."
 	 ; object attr
      '("\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\):" 1 font-lock-type-face)
 	 ; constant
-     '("\\b\\(true\\|false\\|yes\\|no\\|on\\|off\\|null\\|undefined\\)\\b" 1  font-lock-constant-face)
+     (list (concat "\\(^\\|[" head-delimiters "]\\)\\(true\\|false\\|yes\\|no\\|on\\|off\\|null\\|undefined\\)\\>" 2 'font-lock-constant-face))
 	 ; lambda function
      '("\\(\\(([^()]*)\\)?\\s *\\(->\\|=>\\)\\)" 1  font-lock-function-name-face)
 	 ; number
      '("\\<\\(\\(0x\\)?[0-9]+\\(\\.[0-9]+\\(\\(+|-\\)?\\(e\\|E\\)[0-9]+\\)?\\)?\\)\\>" 1 font-lock-builtin-face)
 	 ; builtin-func
-     (list(concat "\\<\\(" builtin-func "\\)\\>[ \n\t(]") 1 'font-lock-builtin-face)
+     (list(concat "\\(^\\|[" head-delimiters "]\\)\\(" builtin-func "\\)\\>") 2 'font-lock-builtin-face)
 	 ; builtin-obj
-     (list(concat "\\<\\(" builtin-obj "\\)\\>[ \n\t(.]") 1 'font-lock-builtin-face)
+     (list(concat "\\(^\\|[" head-delimiters "]\\)\\(" builtin-obj "\\)\\>") 2 'font-lock-builtin-face)
 	 ; builtin-prop
-	 (list(concat "\\<\\(" builtin-prop "\\)\\>[ \n\t(.]") 1 'font-lock-builtin-face)
+     (list(concat "\\(^\\|[" prop-delimiters "]\\)\\<\\(" builtin-prop "\\)\\>") 2 'font-lock-builtin-face)
      )
     )
   )
