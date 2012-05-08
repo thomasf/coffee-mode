@@ -129,13 +129,16 @@ to the error, of course."
   :type 'string
   :group 'coffee)
 
+(defcustom coffee-mode-hook nil
+  "Hook called by `coffee-mode'."
+  :type 'hook
+  :group 'coffee)
+    
 (defcustom coffee-indent-offset 2
   "Amount of offset per level of indentation."
   :type 'integer
   :group 'coffee)
 
-(defvar coffee-mode-hook nil
-  "A hook for you to run your own code when the mode is loaded.")
 
 (defvar coffee-mode-map (make-keymap)
   "Keymap for CoffeeScript major mode.")
