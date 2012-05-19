@@ -88,11 +88,6 @@
   :type 'boolean
   :group 'coffee)
 
-(defcustom coffee-tab-width tab-width
-  "The tab width to use when indenting."
-  :type 'integer
-  :group 'coffee)
-
 (defcustom coffee-command "coffee"
   "The CoffeeScript command used for evaluating code. Must be in your
 path."
@@ -526,137 +521,6 @@ For detail, see `comment-dwim'."
 ;; Indentation
 ;;
 
-;;; The theory is explained in the README.
-
-(defun coffee-indent-line ()
-  "Indent current line as CoffeeScript."
-  (interactive)
-
-  (if (= (point) (point-at-bol))
-      (insert-tab)
-    (save-excursion
-      (let ((prev-indent 0) (cur-indent 0))
-        ;; Figure out the indentation of the previous line
-        (setd prev-indent (coffee-previous-indent))
-
-        ;; Figure out the current line's indentation
-        (setd cur-indent (current-indentation))
-
-        ;; Shift one column to the left
-        (beginning-of-line)
-        (insert-tab)
-
-        (coffee-debug "point: %s" (point))
-        (coffee-debug "point-at-bol: %s" (point-at-bol))
-
-        (when (= (point-at-bol) (point))
-          (forward-char coffee-tab-width))
-
-        (coffee-debug "New indent: %s" (current-indentation))
-
-        ;; We're too far, remove all indentation.
-        (when (> (- (current-indentation) prev-indent) coffee-tab-width)
-          (backward-to-indentation 0)
-          (delete-region (point-at-bol) (point)))))))
-
-(defun coffee-previous-indent ()
-  "Return the indentation level of the previous non-blank line."
-
-  (save-excursion
-    (forward-line -1)
-    (if (bobp)
-        0
-      (progn
-        (while (and (coffee-line-empty-p) (not (bobp))) (forward-line -1))
-        (current-indentation)))))
-
-(defun coffee-line-empty-p ()
-  "Is this line empty? Returns non-nil if so, nil if not."
-  (or (bobp)
-   (string-match "^\\s *$" (coffee-line-as-string))))
-
-(defun coffee-newline-and-indent ()
-  "Inserts a newline and indents it to the same level as the previous line."
-  (interactive)
-
-  ;; Remember the current line indentation level,
-  ;; insert a newline, and indent the newline to the same
-  ;; level as the previous line.
-  (let ((prev-indent (current-indentation)) (indent-next nil))
-    (delete-horizontal-space t)
-    (newline)
-    (insert-tab (/ prev-indent coffee-tab-width))
-
-    ;; We need to insert an additional tab because the last line was special.
-    (when (coffee-line-wants-indent)
-      (insert-tab)))
-
-  ;; Last line was a comment so this one should probably be,
-  ;; too. Makes it easy to write multi-line comments (like the one I'm
-  ;; writing right now).
-  (when (coffee-previous-line-is-comment)
-    (insert "# ")))
-
-;; Indenters help determine whether the current line should be
-;; indented further based on the content of the previous line. If a
-;; line starts with `class', for instance, you're probably going to
-;; want to indent the next line.
-
-(defvar coffee-indenters-bol '("class" "for" "if" "try")
-  "Keywords or syntax whose presence at the start of a line means the
-next line should probably be indented.")
-
-(defun coffee-indenters-bol-regexp ()
-  "Builds a regexp out of `coffee-indenters-bol' words."
-  (regexp-opt coffee-indenters-bol 'words))
-
-(defvar coffee-indenters-eol '(?> ?{ ?\[)
-  "Single characters at the end of a line that mean the next line
-should probably be indented.")
-
-(defun coffee-line-wants-indent ()
-  "Does the current line want to be indented deeper than the previous
-line? Returns `t' or `nil'. See the README for more details."
-  (interactive)
-
-  (save-excursion
-    (let ((indenter-at-bol) (indenter-at-eol))
-      ;; Go back a line and to the first character.
-      (forward-line -1)
-      (backward-to-indentation 0)
-
-      ;; If the next few characters match one of our magic indenter
-      ;; keywords, we want to indent the line we were on originally.
-      (when (looking-at (coffee-indenters-bol-regexp))
-        (setd indenter-at-bol t))
-
-      ;; If that didn't match, go to the back of the line and check to
-      ;; see if the last character matches one of our indenter
-      ;; characters.
-      (when (not indenter-at-bol)
-        (end-of-line)
-
-        ;; Optimized for speed - checks only the last character.
-        (when (and (char-before)
-                   (some (lambda (char)
-                           (= (char-before) char))
-                         coffee-indenters-eol))
-          (setd indenter-at-eol t)))
-
-      ;; If we found an indenter, return `t'.
-      (or indenter-at-bol indenter-at-eol))))
-
-(defun coffee-previous-line-is-comment ()
-  "Returns `t' if the previous line is a CoffeeScript comment."
-  (save-excursion
-    (forward-line -1)
-    (coffee-line-is-comment)))
-
-(defun coffee-line-is-comment ()
-  "Returns `t' if the current line is a CoffeeScript comment."
-  (save-excursion
-    (backward-to-indentation 0)
-    (= (char-after) (string-to-char "#"))))
 
 
 (defun coffee-quote-syntax (n)
@@ -716,8 +580,8 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
   (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
-  (define-key coffee-mode-map [remap newline-and-indent] 'coffee-newline-and-indent)
-  (define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
+  ;;(define-key coffee-mode-map [remap newline-and-indent] 'coffee-newline-and-indent)
+  ;;(define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
@@ -745,9 +609,9 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
            (3 (coffee-quote-syntax 3)))))
 
   ;; indentation
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'coffee-indent-line)
-  (set (make-local-variable 'tab-width) coffee-tab-width)
+  ;;(make-local-variable 'indent-line-function)
+  ;;(setq indent-line-function 'coffee-indent-line)
+  ;;(set (make-local-variable 'tab-width) coffee-tab-width)
 
   ;; imenu
   (make-local-variable 'imenu-create-index-function)
