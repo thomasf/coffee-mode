@@ -718,7 +718,6 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
   (define-key coffee-mode-map [remap newline-and-indent] 'coffee-newline-and-indent)
   (define-key coffee-mode-map "\C-m" 'coffee-newline-and-indent)
-  (define-key coffee-mode-map "\C-c\C-o\C-s" 'coffee-cos-mode)
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
@@ -756,22 +755,6 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 
   ;; hooks
   (set (make-local-variable 'before-save-hook) 'coffee-before-save))
-
-;;
-;; Compile-on-Save minor mode
-;;
-
-(defvar coffee-cos-mode-line " CoS")
-(make-variable-buffer-local 'coffee-cos-mode-line)
-
-(define-minor-mode coffee-cos-mode
-  "Toggle compile-on-save for coffee-mode."
-  :group 'coffee-cos :lighter coffee-cos-mode-line
-  (cond
-   (coffee-cos-mode
-    (add-hook 'after-save-hook 'coffee-compile-file nil t))
-   (t
-    (remove-hook 'after-save-hook 'coffee-compile-file t))))
 
 (provide 'coffee-mode)
 
