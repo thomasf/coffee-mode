@@ -73,11 +73,6 @@
   "A CoffeeScript major mode."
   :group 'languages)
 
-(defcustom coffee-debug-mode nil
-  "Whether to run in debug mode or not. Logs to `*Messages*'."
-  :type 'boolean
-  :group 'coffee-mode)
-
 (defcustom coffee-command "coffee"
   "The CoffeeScript command used for evaluating code. Must be in your
 path."
@@ -133,7 +128,7 @@ to the error, of course."
   "Hook called by `coffee-mode'."
   :type 'hook
   :group 'coffee)
-    
+
 (defcustom coffee-indent-offset 2
   "Amount of offset per level of indentation."
   :type 'integer
@@ -147,10 +142,6 @@ to the error, of course."
 ;;
 
 
-(defun coffee-debug (string &rest args)
-  "Print a message when in debug mode."
-  (when coffee-debug-mode
-    (apply 'message (append (list string) args))))
 
 (defmacro coffee-line-as-string ()
   "Returns the current line as a string."
@@ -431,7 +422,6 @@ For detail, see `comment-dwim'."
             (point-max)
             t)
 
-      (coffee-debug "Match: %s" (match-string 0))
       ;; If this is the start of a new namespace, save the namespace's
       ;; indentation level and name.
       (when (match-string 8)
@@ -440,9 +430,7 @@ For detail, see `comment-dwim'."
         ;; If this is a class declaration, add :: to the namespace.
         (setq ns-name (concat ns-name "::"))
         ;; Save the indentation level.
-        (setq ns-indent (length (match-string 1)))
-        ;; Debug
-        (coffee-debug "ns: Found %s with indent %s" ns-name ns-indent))
+        (setq ns-indent (length (match-string 1))))
       ;; If this is an assignment, save the token being
       ;; assigned. `Please.print:` will be `Please.print`, `block:`
       ;; will be `block`, etc.
@@ -456,11 +444,9 @@ For detail, see `comment-dwim'."
         ;; constructor: => Policeman::constructor
         (when (and ns-name (> indent ns-indent))
           (setq assign (concat ns-name assign)))
-        (coffee-debug "=: Found %s with indent %s" assign indent)
         ;; Clear the namespace if we're no longer indented deeper
         ;; than it.
         (when (and ns-name (<= indent ns-indent))
-          (coffee-debug "ns: Clearing %s" ns-name)
           (setq ns-name nil)
           (setq ns-indent nil))
         ;; Add this to the alist. Done.
