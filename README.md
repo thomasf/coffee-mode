@@ -26,97 +26,6 @@ If `coffee-mode` is not enabled automatically for any files ending in
     (add-to-list 'auto-mode-alist '("\\.coffee$" . coffee-mode))
     (add-to-list 'auto-mode-alist '("Cakefile" . coffee-mode))
 
-## Indentation
-
-### TAB Theory
-
-It goes like this: when you press `TAB`, we indent the line unless
-doing so would make the current line more than two indentation levels
-deepers than the previous line. If that's the case, remove all
-indentation.
-
-Consider this code, with point at the position indicated by the
-caret:
-
-    line1()
-      line2()
-      line3()
-         ^
-
-Pressing `TAB` will produce the following code:
-
-    line1()
-      line2()
-        line3()
-           ^
-
-Pressing `TAB` again will produce this code:
-
-    line1()
-      line2()
-    line3()
-       ^
-
-And so on. I think this is a pretty good way of getting decent
-indentation with a whitespace-sensitive language.
-
-### Newline and Indent
-
-We all love hitting `RET` and having the next line indented
-properly. Given this code and cursor position:
-
-    line1()
-      line2()
-      line3()
-            ^
-
-Pressing `RET` would insert a newline and place our cursor at the
-following position:
-
-    line1()
-      line2()
-      line3()
-
-      ^
-
-In other words, the level of indentation is maintained. This
-applies to comments as well. Combined with the `TAB` you should be
-able to get things where you want them pretty easily.
-
-### Indenters
-
-`class`, `for`, `if`, and possibly other keywords cause the next line
-to be indented a level deeper automatically.
-
-For example, given this code and cursor position::
-
-    class Animal
-                ^
-
-Pressing enter would produce the following:
-
-    class Animal
-
-      ^
-
-That is, indented a column deeper.
-
-This also applies to lines ending in `->`, `=>`, `{`, `[`, and
-possibly more characters.
-
-So this code and cursor position:
-
-    $('#demo').click ->
-                       ^
-
-On enter would produce this:
-
-    $('#demo').click ->
-
-      ^
-
-Pretty slick.
-
 ## imenu
 
 If you're using imenu, `coffee-mode` should work just fine. This
@@ -192,14 +101,8 @@ Naturally. Example:
       (make-local-variable 'tab-width)
       (set 'tab-width 2)
 
-      ;; If you don't have js2-mode
-      (setq coffee-js-mode 'javascript-mode)
-
       ;; If you don't want your compiled files to be wrapped
       (setq coffee-args-compile '("-c" "--bare"))
-
-      ;; *Messages* spam
-      (setq coffee-debug-mode t)
 
       ;; Emacs key binding
       (define-key coffee-mode-map [(meta r)] 'coffee-compile-buffer)
@@ -221,24 +124,6 @@ customize-group` with "coffee" as the group.
 
 You can also customize then with `coffee-mode-hook`, as demonstrated
 above.
-
-### coffee-debug-mode
-
-Whether to run in debug mode or not. Logs to `*Messages*`.
-
-Default: `t`
-
-### coffee-js-mode
-
-The mode to use when viewing compiled JavaScript.
-
-Default: `'js2-mode`
-
-### coffee-cleanup-whitespace
-
-Should we `delete-trailing-whitespace' on save? Probably.
-
-Default: `t`
 
 ### coffee-tab-width
 
