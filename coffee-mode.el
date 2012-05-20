@@ -145,13 +145,7 @@ to the error, of course."
 ;;
 ;; Macros
 ;;
-(defmacro setd (var val)
-  "Like setq but optionally logs the variable's value using `coffee-debug'."
-  (if (and (boundp 'coffee-debug-mode) coffee-debug-mode)
-      `(progn
-         (coffee-debug "%s: %s" ',var ,val)
-         (setq ,var ,val))
-    `(setq ,var ,val)))
+
 
 (defun coffee-debug (string &rest args)
   "Print a message when in debug mode."
@@ -534,13 +528,13 @@ should probably be indented.")
   (save-excursion
     (let ((indenter-at-bol) (indenter-at-eol))
       (when (looking-at (coffee-indenters-bol-regexp))
-        (setd indenter-at-bol t))
+        (setq indenter-at-bol t))
       (when (not indenter-at-bol)
         (end-of-line)
         (when (some (lambda (char)
                       (= (char-before) char))
                     coffee-indenters-eol)
-          (setd indenter-at-eol t)))
+          (setq indenter-at-eol t)))
       (or indenter-at-bol indenter-at-eol))))
 
 ;; based on haml-mode
