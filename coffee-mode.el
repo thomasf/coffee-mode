@@ -690,6 +690,24 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function 'coffee-imenu-create-index))
 
+;;
+;; Compile-on-Save minor mode
+;;
+
+(defvar coffee-cos-mode-line " CoS")
+(make-variable-buffer-local 'coffee-cos-mode-line)
+
+(define-minor-mode coffee-cos-mode
+  "Toggle compile-on-save for coffee-mode."
+  :group 'coffee-cos :lighter coffee-cos-mode-line
+  (cond
+   (coffee-cos-mode
+    (add-hook 'after-save-hook 'coffee-compile-file nil t))
+   (t
+    (remove-hook 'after-save-hook 'coffee-compile-file t))))
+
+
+
 (provide 'coffee-mode)
 
 ;;
