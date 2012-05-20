@@ -78,11 +78,6 @@
   :type 'boolean
   :group 'coffee-mode)
 
-(defcustom coffee-js-mode 'js2-mode
-  "The mode to use when viewing compiled JavaScript."
-  :type 'string
-  :group 'coffee)
-
 (defcustom coffee-command "coffee"
   "The CoffeeScript command used for evaluating code. Must be in your
 path."
@@ -233,7 +228,7 @@ If FILENAME is omitted, the current buffer's file name is used."
                           nil)
          (append coffee-args-compile (list "-s" "-p")))
   (switch-to-buffer (get-buffer coffee-compiled-buffer-name))
-  (funcall coffee-js-mode)
+  (let ((buffer-file-name) "tmp.js") (set-auto-mode))
   (goto-char (point-min)))
 
 (defun coffee-js2coffee-replace-region (start end)
