@@ -256,10 +256,11 @@ If FILENAME is omitted, the current buffer's file name is used."
   "\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\)::\\(\\(\\w\\|\\.\\|_\\| \\|$\\)+?\\):")
 
 ;; Assignment
-(defvar coffee-assign-regexp "\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\):")
+(defvar coffee-assign-regexp "\\(\\(\\w\\|\\.\\|_\\|$\\)+?\s*\\)[:=]")
 
 ;; Lambda
-(defvar coffee-lambda-regexp "\\((.+)\\)?\\s *\\(->\\|=>\\)")
+;;(defvar coffee-lambda-regexp "\\(\\(([^()]*)\\)?\\s *\\(->\\|=>\\)\\)")
+(defvar coffee-lambda-regexp "\\(->\\|=>\\)")
 
 ;; Namespaces
 (defvar coffee-namespace-regexp "\\b\\(class\\s +\\(\\S +\\)\\)\\b")
@@ -311,12 +312,13 @@ If FILENAME is omitted, the current buffer's file name is used."
   `((,coffee-string-regexp . font-lock-string-face)
     (,coffee-this-regexp . font-lock-variable-name-face)
     (,coffee-prototype-regexp . font-lock-variable-name-face)
-    (,coffee-assign-regexp . font-lock-type-face)
+    (,coffee-constant-regexp . font-lock-constant-face)
+    (,coffee-assign-regexp . font-lock-variable-name-face)
     (,coffee-regexp-regexp . font-lock-constant-face)
     (,coffee-boolean-regexp . font-lock-constant-face)
     (,coffee-keywords-regexp . font-lock-keyword-face)
-    (,coffee-constructor-regexp . font-lock-type-face)
-    (,coffee-lambda-regexp . font-lock-function-name-face)))
+    (,coffee-lambda-regexp . font-lock-function-name-face)
+    (,coffee-constructor-regexp . font-lock-type-face)))
 
 ;;
 ;; Helper Functions
