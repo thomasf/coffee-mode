@@ -66,8 +66,8 @@
 ;; Customizable Variables
 ;;
 
-(defconst coffee-mode-version "0.3.0"
-  "The version of this `coffee-mode'.")
+(defconst coffee-mode-version "-1"
+  "The version of `coffee-mode'.")
 
 (defgroup coffee nil
   "A CoffeeScript major mode."
@@ -139,20 +139,6 @@ to the error, of course."
 
 (defvar coffee-mode-map (make-keymap)
   "Keymap for CoffeeScript major mode.")
-
-;;
-;; Compat
-;;
-
-(unless (fboundp 'apply-partially)
-  (defun apply-partially (fun &rest args)
-    "Return a function that is a partial application of FUN to ARGS.
-ARGS is a list of the first N arguments to pass to FUN.
-The result is a new function which does the same as FUN, except that
-the first N arguments are fixed at the values with which this function
-was called."
-    (lexical-let ((fun fun) (args1 args))
-      (lambda (&rest args2) (apply fun (append args1 args2))))))
 
 ;;
 ;; Macros
@@ -238,13 +224,10 @@ If FILENAME is omitted, the current buffer's file name is used."
   (let ((buffer (get-buffer coffee-compiled-buffer-name)))
     (when buffer
       (kill-buffer buffer)))
-
   (call-process-region start end
                        js2coffee-command nil
-                       (current-buffer)
-                       )
-  (delete-region start end)
-  )
+                       (current-buffer))
+  (delete-region start end))
 
 (defun coffee-show-version ()
   "Prints the `coffee-mode' version."
@@ -270,8 +253,7 @@ If FILENAME is omitted, the current buffer's file name is used."
     ["Compile Region" coffee-compile-region]
     ["REPL" coffee-repl]
     "---"
-    ["Version" coffee-show-version]
-    ))
+    ["Version" coffee-show-version]))
 
 ;;
 ;; Define Language Syntax
@@ -455,50 +437,39 @@ For detail, see `comment-dwim'."
             t)
 
       (coffee-debug "Match: %s" (match-string 0))
-
       ;; If this is the start of a new namespace, save the namespace's
       ;; indentation level and name.
       (when (match-string 8)
         ;; Set the name.
         (setq ns-name (match-string 8))
-
         ;; If this is a class declaration, add :: to the namespace.
         (setq ns-name (concat ns-name "::"))
-
         ;; Save the indentation level.
         (setq ns-indent (length (match-string 1)))
-
         ;; Debug
         (coffee-debug "ns: Found %s with indent %s" ns-name ns-indent))
-
       ;; If this is an assignment, save the token being
       ;; assigned. `Please.print:` will be `Please.print`, `block:`
       ;; will be `block`, etc.
       (when (setq assign (match-string 3))
         ;; The position of the match in the buffer.
         (setq pos (match-beginning 3))
-
         ;; The indent level of this match
         (setq indent (length (match-string 1)))
-
         ;; If we're within the context of a namespace, add that to the
         ;; front of the assign, e.g.
         ;; constructor: => Policeman::constructor
         (when (and ns-name (> indent ns-indent))
           (setq assign (concat ns-name assign)))
-
         (coffee-debug "=: Found %s with indent %s" assign indent)
-
         ;; Clear the namespace if we're no longer indented deeper
         ;; than it.
         (when (and ns-name (<= indent ns-indent))
           (coffee-debug "ns: Clearing %s" ns-name)
           (setq ns-name nil)
           (setq ns-indent nil))
-
         ;; Add this to the alist. Done.
         (push (cons assign pos) index-alist)))
-
     ;; Return the alist.
     index-alist))
 
