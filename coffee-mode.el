@@ -139,14 +139,12 @@ to the error, of course."
   :type 'integer
   :group 'coffee)
 
-
 (defvar coffee-mode-map (make-keymap)
   "Keymap for CoffeeScript major mode.")
 
 ;;
 ;; Macros
 ;;
-
 (defmacro setd (var val)
   "Like setq but optionally logs the variable's value using `coffee-debug'."
   (if (and (boundp 'coffee-debug-mode) coffee-debug-mode)
