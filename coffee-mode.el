@@ -138,19 +138,8 @@ to the error, of course."
   "Keymap for CoffeeScript major mode.")
 
 ;;
-;; Macros
-;;
-
-
-
-(defmacro coffee-line-as-string ()
-  "Returns the current line as a string."
-  `(buffer-substring (point-at-bol) (point-at-eol)))
-
-;;
 ;; Commands
 ;;
-
 (defun coffee-repl ()
   "Launch a CoffeeScript REPL using `coffee-command' as an inferior mode."
   (interactive)
