@@ -159,7 +159,6 @@ to the error, of course."
     (set-buffer
      (apply 'make-comint "CoffeeREPL"
             coffee-command nil coffee-args-repl)))
-
   (pop-to-buffer "*CoffeeREPL*"))
 
 (defun coffee-compiled-file-name (&optional filename)
@@ -190,11 +189,9 @@ If FILENAME is omitted, the current buffer's file name is used."
 (defun coffee-compile-region (start end)
   "Compiles a region and displays the JS in another buffer."
   (interactive "r")
-
   (let ((buffer (get-buffer coffee-compiled-buffer-name)))
     (when buffer
       (kill-buffer buffer)))
-
   (apply (apply-partially 'call-process-region start end coffee-command nil
                           (get-buffer-create coffee-compiled-buffer-name)
                           nil)
@@ -206,7 +203,6 @@ If FILENAME is omitted, the current buffer's file name is used."
 (defun coffee-js2coffee-replace-region (start end)
   "Replace JS to coffee in current buffer."
   (interactive "r")
-
   (let ((buffer (get-buffer coffee-compiled-buffer-name)))
     (when buffer
       (kill-buffer buffer)))
@@ -230,7 +226,6 @@ If FILENAME is omitted, the current buffer's file name is used."
 ;;
 ;; Menubar
 ;;
-
 (easy-menu-define coffee-mode-menu coffee-mode-map
   "Menu for CoffeeScript mode"
   '("CoffeeScript"
