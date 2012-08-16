@@ -134,7 +134,14 @@ to the error, of course."
   :type 'integer
   :group 'coffee)
 
-(defvar coffee-mode-map (make-keymap)
+(defvar coffee-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "A-r") 'coffee-compile-buffer)
+    (define-key map (kbd "A-R") 'coffee-compile-region)
+    (define-key map (kbd "A-M-r") 'coffee-repl)
+    (define-key map [remap comment-dwim] 'coffee-comment-dwim)
+    (define-key map "\C-c\C-o\C-s" 'coffee-cos-mode)
+    map)
   "Keymap for CoffeeScript major mode.")
 
 ;;
@@ -631,16 +638,12 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 ;;
 
 ;;;###autoload
-(define-derived-mode coffee-mode fundamental-mode
-  "Coffee"
-  "Major mode for editing CoffeeScript."
+(define-derived-mode coffee-mode prog-mode "Coffee"
+  "Major mode for editing CoffeeScript.
 
-  ;; key bindings
-  (define-key coffee-mode-map (kbd "RET") 'newline-and-indent)
-  (define-key coffee-mode-map (kbd "A-r") 'coffee-compile-buffer)
-  (define-key coffee-mode-map (kbd "A-R") 'coffee-compile-region)
-  (define-key coffee-mode-map (kbd "A-M-r") 'coffee-repl)
-  (define-key coffee-mode-map [remap comment-dwim] 'coffee-comment-dwim)
+\\{coffee-mode-map}
+Entry to this mode call the value of `coffee-mode-hook`
+if that value is non-nil."
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
