@@ -285,7 +285,7 @@ If FILENAME is omitted, the current buffer's file name is used."
 ;; CoffeeScript keywords.
 (defvar coffee-cs-keywords
   '("then" "unless" "and" "or" "is"
-    "isnt" "not" "of" "by" "where" "when"))
+    "isnt" "not" "of" "by" "when" "own"))
 
 ;; Regular expression combining the above three lists.
 (defvar coffee-keywords-regexp (regexp-opt
