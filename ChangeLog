@@ -1,0 +1,6 @@
+2012-08-22  Brian Wilson  <brian@kinvey.com>
+
+	* coffee-mode.el: Updated to compile cleanly on emacs 24.1
+
+	* .gitignore: Ignore the compiled .elc files
+

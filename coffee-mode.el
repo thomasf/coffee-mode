@@ -73,18 +73,25 @@
   "A CoffeeScript major mode."
   :group 'languages)
 
+(defcustom coffee-cleanup-whitespace nil
+  "Should we `delete-trailing-whitespace' on save? Probably."
+  :type 'boolean
+  :group 'coffee)
+
+(defcustom coffee-tab-width tab-width
+  "The tab width to use when indenting."
+  :type 'integer
+  :group 'coffee)
+
 (defcustom coffee-command "coffee"
-  "The CoffeeScript command used for evaluating code. Must be in your
-path."
+  "The CoffeeScript command used for evaluating code. Must be in your path."
   :type 'string
   :group 'coffee)
 
 (defcustom js2coffee-command "js2coffee"
-  "The js2coffee command used for evaluating code. Must be in your
-path."
+  "The js2coffee command used for evaluating code. Must be in your path."
   :type 'string
   :group 'coffee)
-
 
 (defcustom coffee-args-repl '("-i")
   "The command line arguments to pass to `coffee-command' to start a REPL."
@@ -613,7 +620,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
     (cond
      ;; Consider property for the last char if in a fenced string.
      ((= n 3)
-      (let* ((font-lock-syntactic-keywords nil)
+      (let* ((syntax-propertize-function nil)
              (syntax (syntax-ppss)))
         (when (eq t (nth 3 syntax))   ; after unclosed fence
           (goto-char (nth 8 syntax))  ; fence position
@@ -626,7 +633,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
                (not (match-end 1)))     ; prefix is null
           (and (= n 1)       ; prefix
                (match-end 1)))          ; non-empty
-      (let ((font-lock-syntactic-keywords nil))
+      (let ((syntax-propertize-function nil))
         (unless (eq 'string (syntax-ppss-context (syntax-ppss)))
           (eval-when-compile (string-to-syntax "|")))))
      ;; Otherwise (we're in a non-matching string) the property is
@@ -636,6 +643,13 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 ;;
 ;; Define Major Mode
 ;;
+
+(defun syntaxify (start end)
+  `((,(concat "\\(?:^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+                    "\\(?:\\('\\)\\('\\)\\('\\)\\|\\(?1:\"\\)\\(?2:\"\\)\\(?3:\"\\)\\)")
+           (1 (coffee-quote-syntax 1) nil lax)
+           (2 (coffee-quote-syntax 2))
+           (3 (coffee-quote-syntax 3)))))
 
 ;;;###autoload
 (define-derived-mode coffee-mode prog-mode "Coffee"
@@ -660,15 +674,11 @@ if that value is non-nil."
   ;; single quote strings
   (modify-syntax-entry ?' "\"" coffee-mode-syntax-table)
 
-  (setq font-lock-syntactic-keywords
+  (setq syntax-propertize-function
         ;; Make outer chars of matching triple-quote sequences into generic
         ;; string delimiters.
         ;; First avoid a sequence preceded by an odd number of backslashes.
-        `((,(concat "\\(?:^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
-                    "\\(?:\\('\\)\\('\\)\\('\\)\\|\\(?1:\"\\)\\(?2:\"\\)\\(?3:\"\\)\\)")
-           (1 (coffee-quote-syntax 1) nil lax)
-           (2 (coffee-quote-syntax 2))
-           (3 (coffee-quote-syntax 3)))))
+        'syntaxify)
 
   ;; indentation
   (set (make-local-variable 'tab-width) coffee-tab-width)
@@ -709,3 +719,6 @@ if that value is non-nil."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("Cakefile" . coffee-mode))
 ;;; coffee-mode.el ends here
+;; Local Variables: 
+;; byte-compile-warnings: (not cl-functions) 
+;; End: 
